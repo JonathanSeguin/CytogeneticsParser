@@ -1,4 +1,3 @@
-require 'cytogenetics/karyotype_error'
 
 module Cytogenetics
   class KaryotypeReader

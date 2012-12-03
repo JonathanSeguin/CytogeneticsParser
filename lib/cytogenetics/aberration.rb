@@ -60,7 +60,7 @@ module Cytogenetics
 
       #regex = Aberration.regex[@type.to_sym]
       # make sure it really is an inversion first
-      #raise KaryotypeError, "#{str} does not appear to be a #{self.class}" unless str.match(self.regex)
+      #raise StructureError, "#{str} does not appear to be a #{self.class}" unless str.match(self.regex)
       get_breakpoints() #(@abr)
       @breakpoints.flatten!
     end
@@ -111,7 +111,7 @@ module Cytogenetics
 
     def find_bands(str, index)
       band_info = nil
-      #raise KaryotypeError, "No bands defined in #{str}" if str.length.eql?(index+1)
+      #raise StructureError, "No bands defined in #{str}" if str.length.eql?(index+1)
       if str.length.eql?(index+1)
         @log.warn("No bands defined in #{str}, skipped.")
         return

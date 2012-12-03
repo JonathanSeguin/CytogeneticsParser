@@ -6,7 +6,7 @@ require_relative '../lib/cytogenetics/chromosome'
 require_relative '../lib/cytogenetics/chromosome_aberrations'
 require_relative '../lib/cytogenetics/aberration'
 require_relative '../lib/cytogenetics/fragment'
-require_relative '../lib/cytogenetics/karyotype_error'
+#require_relative '../lib/cytogenetics/karyotype_error'
 require_relative '../lib/cytogenetics/version'
 
 require_relative '../lib/cytogenetics/utils/karyotype_reader'

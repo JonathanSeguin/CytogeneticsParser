@@ -16,7 +16,7 @@ module Cytogenetics
       @chr = @start.chr
 
       unless @start.chr.eql? @end.chr
-        raise ArgumentError, "Fragments must be within the same chromosome: #{args}"
+        raise StructureError, "Fragments must be within the same chromosome: #{args}"
       end
     end
 

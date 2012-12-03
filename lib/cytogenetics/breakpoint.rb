@@ -11,7 +11,7 @@ module Cytogenetics
 
       unless ((c.is_a? String and c.match(/\d+|X|Y/)) and (b.is_a? String and b.length > 0))
         @log.error("#{c}#{b} is not a valid breakpoint")
-        raise ArgumentError, "#{c}#{b} is not a valid breakpoint"
+        raise StructureError, "#{c}#{b} is not a valid breakpoint"
       end
       @chr = c; @band = b
     end

@@ -8,7 +8,7 @@ module Cytogenetics
 
     @@haploid = 23
 
-    attr_reader :aberrations, :karyotype, :ploidy, :sex, :abnormal_chr, :normal_chr
+    attr_reader :aberrations, :karyotype, :ploidy, :sex, :abnormal_chr, :normal_chr, :original_karyotype
 
     class<<self
       attr_accessor :aberration_objs, :unclear_aberrations, :log
@@ -20,6 +20,7 @@ module Cytogenetics
       @log.info("Reading karyotype #{karyotype_str}")
 
       @karyotype = karyotype_str.gsub(/\s/, "")
+      @original_karyotype = @karyotype # just to keep it around before it gets cleaned up
       @normal_chr = {}; @abnormal_chr = {}; @aberrations = {}; @unclear_aberrations = [];
       setup_abberation_objs()
       prep_karyotype()
@@ -117,10 +118,10 @@ module Cytogenetics
 # determine ploidy & gender, clean up each aberration and drop any "unknown"
     def prep_karyotype
       @karyotype.gsub!(/\s/, "")
-      clones = @karyotype.scan(/(\[\d+\])/).collect { |a| a[0] }
+      clones = @karyotype.scan(/(\[\w+\])/).collect { |a| a[0] }
       @log.warn("Karyotype is a collection of clones, analysis may be inaccurate.") if clones.length > 3
 
-      @karyotype.gsub!(/\[\d+\]/, "") # don't care about numbers of cells: [5]
+      @karyotype.gsub!(/\[\w+\]/, "") # don't care about numbers of cells: [5] or [cp10], there are some other problematic things in [] but they are just being ignored currently
 
       (pl, sc) = @karyotype.split(",")[0..1]
       if (pl and sc)

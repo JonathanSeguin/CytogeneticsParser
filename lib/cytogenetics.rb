@@ -4,7 +4,7 @@ require 'cytogenetics/chromosome'
 require 'cytogenetics/chromosome_aberrations'
 require 'cytogenetics/fragment'
 require 'cytogenetics/karyotype'
-require 'cytogenetics/karyotype_error'
+#require 'cytogenetics/karyotype_error'
 
 
 require 'cytogenetics/utils/karyotype_reader'
@@ -40,10 +40,15 @@ module Cytogenetics
 
   end
 
-
-
   def self.karyotype(kary_str)
     return Karyotype.new(kary_str)
+  end
+
+
+  class StructureError < StandardError
+  end
+
+  class KaryotypeError < StandardError
   end
 
 end
