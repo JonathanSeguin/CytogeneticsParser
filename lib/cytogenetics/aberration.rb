@@ -102,7 +102,7 @@ module Cytogenetics
       chrs = str[chr_s+1..chr_e-1].split(/;|:/)
       chrs.each do |chr|
         unless chr.match(/^\d+|X|Y$/)
-          log.warn("No chromosome defined from #{str}, skipped.")
+          @log.warn("No chromosome defined from #{str}, skipped.")
           return
         end
       end
@@ -113,7 +113,7 @@ module Cytogenetics
       band_info = nil
       #raise KaryotypeError, "No bands defined in #{str}" if str.length.eql?(index+1)
       if str.length.eql?(index+1)
-        log.warn("No bands defined in #{str}, skipped.")
+        @log.warn("No bands defined in #{str}, skipped.")
         return
       end
 
@@ -125,13 +125,13 @@ module Cytogenetics
         bands = str[band_s+1..band_e-1].split(/;|:/)
 
         if str[band_s+1..band_e-1].match(/::/)
-          log.warn("Aberration defined using different language, not currently parsed skipping: #{@abr}")
+          @log.warn("Aberration defined using different language, not currently parsed skipping: #{@abr}")
           return band_info
         else
           bands.map! { |b| b.sub(/-[q|p]\d+$/, "") } # sometimes bands are given a range, for our purposes we'll take the first one (CyDas appears to do this as well)
           bands.each do |b|
             unless b.match(/^[p|q]\d+(\.\d)?$/)
-              log.warn("Bands incorrectly defined in #{str}")
+              @log.warn("Bands incorrectly defined in #{str}")
               return band_info
             end
           end

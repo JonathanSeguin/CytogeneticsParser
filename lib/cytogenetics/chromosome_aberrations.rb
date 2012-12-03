@@ -91,7 +91,7 @@ module Cytogenetics
           abrclass = Aberration.classify_aberration(abn)
 
           if abrclass.to_s.eql? 'unk' # not dealing with unknowns
-            log.warn("Cannot handle #{abn}, incorrect format.")
+            @log.warn("Cannot handle #{abn}, incorrect format.")
             next
           end
 
@@ -145,7 +145,7 @@ module Cytogenetics
         chr_i = find_chr(@abr)
         band_i = find_bands(@abr, chr_i[:end_index])
         unless band_i
-          log.warn("No bands defined in #{@abr}")
+          @log.warn("No bands defined in #{@abr}")
         else
           chr_i[:chr].each_with_index do |c, i|
             @breakpoints << Breakpoint.new(c, band_i[:bands][i], 'trans')

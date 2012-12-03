@@ -1,18 +1,16 @@
-$LOAD_PATH.push File.expand_path("../lib", __FILE__)
-
 require 'test/unit'
-require 'cytogenetics'
-require 'cytogenetics/karyotype'
-require 'cytogenetics/breakpoint'
-require 'cytogenetics/chromosome'
-require 'cytogenetics/chromosome_aberrations'
-require 'cytogenetics/aberration'
-require 'cytogenetics/fragment'
-require 'cytogenetics/karyotype_error'
-require 'cytogenetics/version'
+require_relative '../lib/cytogenetics'
+require_relative '../lib/cytogenetics/karyotype'
+require_relative '../lib/cytogenetics/breakpoint'
+require_relative '../lib/cytogenetics/chromosome'
+require_relative '../lib/cytogenetics/chromosome_aberrations'
+require_relative '../lib/cytogenetics/aberration'
+require_relative '../lib/cytogenetics/fragment'
+require_relative '../lib/cytogenetics/karyotype_error'
+require_relative '../lib/cytogenetics/version'
 
-require 'cytogenetics/utils/karyotype_reader'
-require 'cytogenetics/utils/band_reader'
+require_relative '../lib/cytogenetics/utils/karyotype_reader'
+require_relative '../lib/cytogenetics/utils/band_reader'
 
 class TestCytogenetics < Test::Unit::TestCase
 

@@ -1,5 +1,8 @@
 require 'cytogenetics/utils/band_reader'
 
+File.expand_path '../../resources', File.dirname(__FILE__)
+
+
 module Cytogenetics
 
   class Chromosome
@@ -19,7 +22,7 @@ module Cytogenetics
       raise ArgumentError, "#{chr} is not a valid chromosome identifier." unless (chr.is_a? String and chr.match(/^\d+|X|Y$/))
       @name = chr
       @aberrations = []
-      @normal_bands = bands(@name, "resources/HsBands.txt") if (args.length > 1 and args[1].eql? true) ## TODO quit hardcoding
+      #@normal_bands = bands(@name, File.open("HsBands.txt", 'r')) if (args.length > 1 and args[1].eql? true) ## TODO quit hardcoding
     end
 
     def to_s

@@ -1,3 +1,4 @@
+# Bands should be listed in order for each chromosome p->q arms
 Xp22.3
 Xp22.2
 Xp22.1

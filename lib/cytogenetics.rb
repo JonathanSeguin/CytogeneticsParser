@@ -27,7 +27,20 @@ module Cytogenetics
       end
       @clog
     end
+
+    #def haploid=(hp)
+    #  @sp_ploidy=hp
+    #end
+    #
+    #def haploid
+    #  unless @sp_ploidy
+    #
+    #  end
+    #end
+
   end
+
+
 
   def self.karyotype(kary_str)
     return Karyotype.new(kary_str)

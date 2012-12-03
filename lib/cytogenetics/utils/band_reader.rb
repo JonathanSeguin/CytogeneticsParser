@@ -17,6 +17,7 @@ module Cytogenetics
       band_by_chr = {}
       file.each_line do |line|
         line.chomp!
+        next if line.start_with?"#"
         line.match(/^(\d+|X|Y)([p|q].*)/)
         c = $1; b = $2
         band_by_chr[c] = Array.new unless band_by_chr.has_key? c
