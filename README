@@ -1,10 +1,25 @@
-Cancer Karyotype Parser
+Karyotype Parser
 
 This is based on the ISCN defined language.  However, most karyotypes do not conform perfectly and there are still errors in checking the formulas.
+A logger is not required but is recommended due to the large number of unhandled parser errors currently.  See bin/ex_karyotype.rb for example use with logger and example karyotypes.
+
+NOTE: This is currently only set up for human karyotypes.  Ploidy calculation is currently based on the human haplotype (23) and human sex chromosomes (XX/XY). The chromosome bands are
+defined in the resources file and currently hardcoded.  For use with other organisms these would need to be changed and tested.
 
 Use:
+
+require 'cytogenetics'
+require 'logger'
+
+log = Logger.new("test.txt")
+log.datetime_format = "%M"
+log.level = Logger::INFO
+Cytogenetics.logger = log
+
 
 kt = Cytogenetics.karyotype(<<karyotype string>>)
 kt.report_breakpoints
 kt.report_fragments
 kt.summarize
+
+
