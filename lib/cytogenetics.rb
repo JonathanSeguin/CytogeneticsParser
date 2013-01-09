@@ -44,6 +44,10 @@ module Cytogenetics
     return Karyotype.new(kary_str)
   end
 
+  def self.classify_aberration(abr)
+    return Aberration.classify_aberration(abr)
+  end
+
 
   class StructureError < StandardError
   end
