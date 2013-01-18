@@ -1,4 +1,4 @@
-require 'cytogenetics/utils/band_reader'
+require_relative 'utils/band_reader'
 
 File.expand_path '../../resources', File.dirname(__FILE__)
 

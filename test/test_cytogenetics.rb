@@ -1,16 +1,6 @@
 require 'test/unit'
+require 'yaml'
 require_relative '../lib/cytogenetics'
-require_relative '../lib/cytogenetics/karyotype'
-require_relative '../lib/cytogenetics/breakpoint'
-require_relative '../lib/cytogenetics/chromosome'
-require_relative '../lib/cytogenetics/chromosome_aberrations'
-require_relative '../lib/cytogenetics/aberration'
-require_relative '../lib/cytogenetics/fragment'
-#require_relative '../lib/cytogenetics/karyotype_error'
-require_relative '../lib/cytogenetics/version'
-
-require_relative '../lib/cytogenetics/utils/karyotype_reader'
-require_relative '../lib/cytogenetics/utils/band_reader'
 
 class TestCytogenetics < Test::Unit::TestCase
 
@@ -23,6 +13,26 @@ class TestCytogenetics < Test::Unit::TestCase
     rescue => error
       assert_equal error.class, Cytogenetics::KaryotypeError
     end
+  end
+
+  def test_sex
+    k = Cytogenetics.karyotype("46, XX, t(12;14)(q14;q23)")
+    assert_equal k.sex, 'XX'
+    assert_equal k.normal_chr['X'], 2
+
+    k = Cytogenetics.karyotype("46, XY, t(12;14)(q14;q23)")
+    assert_equal k.sex, 'XY'
+    assert_equal k.normal_chr['X'], 1
+    assert_equal k.normal_chr['Y'], 1
+
+    k = Cytogenetics.karyotype("46, XXY, t(12;14)(q14;q23)")
+    assert_equal k.sex, 'XY'
+    assert_equal k.normal_chr['X'], 1
+    assert_equal k.normal_chr['Y'], 1
+    assert_equal k.abnormal_chr['X'].length, 1
+
+    k = Cytogenetics.karyotype("46, t(12;14)(q14;q23)")
+    assert_equal k.sex, ''
   end
 
   def test_karyotype
@@ -40,13 +50,33 @@ class TestCytogenetics < Test::Unit::TestCase
     chr = Cytogenetics::Chromosome.new(6, true)
     assert_kind_of Cytogenetics::Chromosome, chr
     assert_equal chr.name, "6"
-
-
   end
 
+  def test_trans_no_der
+    k = Cytogenetics.karyotype("46, XX, t(12;14)(q14;q23)")
+    assert_equal k.ploidy, 2
+    assert_equal k.sex, 'XX'
+    assert_equal k.normal_chr['12'], 1
+    assert_equal k.normal_chr['14'], 1
+    assert_equal k.abnormal_chr.keys, ['12', '14']
+    assert_equal k.abnormal_chr['12'].length, 1
+    assert_equal k.abnormal_chr['14'].length, 1
+  end
 
-  def test_invalid_breakpoints
+  def test_dic
+    k = Cytogenetics.karyotype("46, XX, dic(12;14)(q14;q23)")
+    assert_equal k.ploidy, 2
+    assert_equal k.sex, 'XX'
+    assert_equal k.normal_chr['12'], 2
+    assert_equal k.normal_chr['14'], 2
+    assert_equal k.abnormal_chr.keys, ['12']
+    assert_equal k.abnormal_chr.has_key?('14'), false
+  end
 
+  def test_dmin
+    k = Cytogenetics.karyotype("46, XX, dic(12;14)(q14;q23),1~9dmin(8)")
+    assert_equal k.abnormal_chr.has_key?('8'), true
+    assert_equal k.report_fragments.length, 9
   end
 
 end

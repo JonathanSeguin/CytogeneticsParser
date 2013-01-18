@@ -1,6 +1,5 @@
 require 'yaml'
-
-require 'cytogenetics/utils/karyotype_reader'
+require_relative 'utils/karyotype_reader'
 
 module Cytogenetics
 
@@ -34,16 +33,27 @@ module Cytogenetics
         regex = @aberration_obj[abr_type].regex
 
         @aberrations[abr_type].each do |abr|
-#        if abr_type
-          abr.match(regex)
-          @log.warn("Aberration has two chromosomes #{abr} but only the first one is handled.") unless ($2.nil? or $1.eql? $2)
+          match = abr.match(regex)
+          unless (match.captures.length >= @aberration_obj[abr_type].expected_chromosome)
+            @log.warn("Aberration #{abr_type} expects #{@aberration_obj[abr_type].expected_chromosome} chromosomes but #{match.captures.length} found")
+          end
 
-          ## TODO deal with the case of 2 chromosomes defined in the aberration
-          chr = Chromosome.new($1, true)
-          chr.aberration(@aberration_obj[abr_type].new(abr))
-
-          @abnormal_chr[chr.name] = [] unless @abnormal_chr.has_key? chr.name
-          @abnormal_chr[chr.name] << chr
+          ## With a translocation but not a derivative you should get one chromosome for each translocated t(7;4) --> 7, 4 with breakpoints
+          ## With all others (so far) it should result in one chromosome so just take the first one
+          if abr_type.to_s.eql? ChromosomeAberrations::Translocation.type.to_s
+            match.captures.each do |c|
+              chr = Chromosome.new(c, true)
+              chr.aberration(@aberration_obj[abr_type].new(abr))
+              (@abnormal_chr[chr.name] ||= []) << chr
+              # Example: when a translocation is indicated without a derivative it means that there's no new chromosome, but each chromosome
+              # in the translocation is one of the normal pair.  t(9:22)(q43;q11)  Should have 1 normal 9 and 1 normal 22, then 1 abnormal of each
+              @normal_chr[c] = 1 unless (@aberration_obj[abr_type].expected_chromosome.eql? 1 or c.eql? 'Y')
+            end
+          else
+            chr = Chromosome.new(match.captures[ @aberration_obj[abr_type].chromosome_regex_position ])
+            chr.aberration(@aberration_obj[abr_type].new(abr))
+            (@abnormal_chr[chr.name] ||= []) << chr
+          end
         end
       end
     end
@@ -99,6 +109,7 @@ module Cytogenetics
 
     # -------------------- # PRIVATE # -------------------- #
     :private
+
     def config_logging
       @log = Cytogenetics.logger
       #@log.progname = self.class.name
@@ -115,7 +126,7 @@ module Cytogenetics
       @aberrations[:gain].each { |c| @normal_chr[c] += 1 } if @aberrations[:gain]
     end
 
-# determine ploidy & gender, clean up each aberration and drop any "unknown"
+    # determine ploidy & gender, clean up each aberration and drop any "unknown"
     def prep_karyotype
       @karyotype.gsub!(/\s/, "")
       clones = @karyotype.scan(/(\[\w+\])/).collect { |a| a[0] }
@@ -131,17 +142,42 @@ module Cytogenetics
         raise KaryotypeError, "'#{@karyotype}' is not a valid karyotype. Ploidy and sex defnitions are absent"
       end
 
-      st = sex_chr.values.inject { |sum, v| sum+v }
-      @sex = nil
-      karyotype_index = 1 # sometimes the sex is not indicated and there's no case information to figure it out
-      if st > 0
-        @sex = sex_chr.keys.join("")
-        karyotype_index = 2
-      end
-
+      ## Set up the normal chromosome array based on the ploidy value
       (Array(1..23)).each { |c| @normal_chr[c.to_s] = @ploidy.to_i }
 
-      sex_chr.each_pair { |c, p| @normal_chr[c] = p.to_i }
+      # sometimes the sex is not indicated and there's no case information to figure it out, so start reading karyotype from this position
+      (sex_chr.values.inject { |sum, v| sum+v }.eql? 0) ? (karyotype_index = 1) : (karyotype_index = 2)
+
+      sex_chr_count = sex_chr.values.inject { |sum, v| sum+v }
+      (sex_chr_count.eql? 0) ? (karyotype_index = 1) : (karyotype_index = 2)
+
+      case
+        when ((sex_chr['X'] > 0 and sex_chr['Y'] > 0) or (sex_chr['X'].eql? 0 and sex_chr['Y'] > 0))
+          @sex = 'XY'
+        when (sex_chr['X'] > 0 and sex_chr['Y'].eql? 0)
+          @sex = 'XX'
+        else
+          @sex = ""
+      end
+
+
+      ## I'm sure there's a cleaner way to do this but I'm stuck at the moment
+      sex_chr.each_pair { |c, count| @normal_chr[c] = count }
+      (1..sex_chr['Y']).each do |i|
+        @normal_chr['Y'] = 1
+        (@abnormal_chr['Y'] ||= []) << Chromosome.new('Y', ChromosomeAberrations::ChromosomeGain.new('Y')) if i > 1
+      end
+
+      (1..sex_chr['X']).each do |i|
+        if @normal_chr['Y'] > 0
+          @normal_chr['X'] = 1
+          (@abnormal_chr['X'] ||= []) << Chromosome.new('X', ChromosomeAberrations::ChromosomeGain.new('X')) if i > 1
+        else
+          @normal_chr['X'] = 2
+          (@abnormal_chr['X'] ||= []) << Chromosome.new('X', ChromosomeAberrations::ChromosomeGain.new('X')) if i > 2
+        end
+      end
+
 
       # deal with the most common karyotype string inconsistencies
       cleaned_karyotype = []

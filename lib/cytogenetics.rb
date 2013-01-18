@@ -1,14 +1,19 @@
-require 'cytogenetics/aberration'
-require 'cytogenetics/breakpoint'
-require 'cytogenetics/chromosome'
-require 'cytogenetics/chromosome_aberrations'
-require 'cytogenetics/fragment'
-require 'cytogenetics/karyotype'
-#require 'cytogenetics/karyotype_error'
+require_relative 'cytogenetics/aberration'
+require_relative 'cytogenetics/breakpoint'
+require_relative 'cytogenetics/chromosome'
+require_relative 'cytogenetics/fragment'
+require_relative 'cytogenetics/karyotype'
 
+require_relative 'cytogenetics/aberrations/translocation'
+require_relative 'cytogenetics/aberrations/dicentric_chromosome'
+require_relative 'cytogenetics/aberrations/derivative'
+require_relative 'cytogenetics/aberrations/double_minute_chromosome'
 
-require 'cytogenetics/utils/karyotype_reader'
-require 'cytogenetics/utils/band_reader'
+require_relative 'cytogenetics/aberrations/basic_aberrations'
+require_relative 'cytogenetics/aberrations/ploidy_aberrations'
+
+require_relative 'cytogenetics/utils/karyotype_reader'
+require_relative 'cytogenetics/utils/band_reader'
 
 require 'yaml'
 require 'logger'

@@ -52,6 +52,14 @@ module Cytogenetics
       return "unk".to_sym
     end
 
+    def self.chromosome_regex_position
+      return @chr_pos ||= 0
+    end
+
+    def self.expected_chromosome
+      return @ex ||= 1
+    end
+
     def initialize(str)
       config_logging()
 
@@ -64,6 +72,7 @@ module Cytogenetics
       get_breakpoints() #(@abr)
       @breakpoints.flatten!
     end
+
 
     def remove_breakpoint(bp)
       removed = @breakpoints.index(bp)
@@ -125,7 +134,7 @@ module Cytogenetics
         bands = str[band_s+1..band_e-1].split(/;|:/)
 
         if str[band_s+1..band_e-1].match(/::/)
-          @log.warn("Aberration defined using different language, not currently parsed skipping: #{@abr}")
+          @log.warn("Aberration defined using unhandled syntax, not currently parsed skipping: #{@abr}")
           return band_info
         else
           bands.map! { |b| b.sub(/-[q|p]\d+$/, "") } # sometimes bands are given a range, for our purposes we'll take the first one (CyDas appears to do this as well)
