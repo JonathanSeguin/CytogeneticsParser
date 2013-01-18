@@ -3,6 +3,7 @@ require_relative 'cytogenetics/breakpoint'
 require_relative 'cytogenetics/chromosome'
 require_relative 'cytogenetics/fragment'
 require_relative 'cytogenetics/karyotype'
+require_relative 'cytogenetics/ring'
 
 require_relative 'cytogenetics/aberrations/translocation'
 require_relative 'cytogenetics/aberrations/dicentric_chromosome'

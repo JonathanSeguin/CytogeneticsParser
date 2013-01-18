@@ -1,4 +1,5 @@
 require_relative '../aberration'
+require_relative '../ring'
 
 module Cytogenetics
 
@@ -16,7 +17,7 @@ module Cytogenetics
         # fragments may also not be the best way to list these bits of chromosome
         match = @abr.match(self.class.regex)
         fragments = match.captures.first.split("~")
-        (fragments.first..fragments.last).each { |i| @fragments << match.captures[-1] }
+        (fragments.first..fragments.last).each { |i| (@dmin ||= []) << Ring.new( match.captures[-1] )}
       end
 
 
