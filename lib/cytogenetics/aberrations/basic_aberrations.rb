@@ -47,16 +47,11 @@ module Cytogenetics
     end
 
     ## RING  ## TODO figure out the right regex for this
-    #class RingChromosome < Aberration
-    #  @kt = 'ring'
-    #  @rx = /^r\(/
-    #end
+    class RingChromosome < Aberration
+      @kt = 'ring'
+      @rx = /^r\((\d+|X|Y)\)/
+    end
 
-    ## ROBERTSONIAN
-    #class Robertsonian < Aberration
-    #  @kt = 'rob'
-    #  @rx = /^rob\(/
-    #end
 
   end
 end

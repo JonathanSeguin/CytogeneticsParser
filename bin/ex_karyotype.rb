@@ -19,23 +19,18 @@ kts = [
 
 k = "43-45,XY,add(2;3)(q13),-3,-5,dic(13;13)(q14;q32),dic(1;19)(q12;q13),der(6)t(2;6)(q12;p12)t(1;6)(p22;q21),der(5)t(5;17)(q13;q21),-7,i(8)(q10),-11,-17,ider(19)(q10)add(19)(q13)"
 
+k = "46, XX, dic(12;14)(q14;q23),1~9dmin(8),t(12;14)(q14;q23)"
 
-
-k = kts[-1]
-k = "46, XX, t(12;14)(q14;q23-q24)"
-
+#k = kts[-1]
+#k = "46, XX, t(12;14)(q14;q23q24),add(13)(q87)"
 
 
 kt = Cytogenetics.karyotype(k)
 
-puts kt.report_breakpoints
+puts "Breakpoints:\n\t" + kt.report_breakpoints.join("\n\t")
+puts "Fragments:\n\t" + kt.report_fragments.join("\n\t")
 puts kt.abnormal_chr
 puts kt.normal_chr
-
-puts YAML::dump kt.abnormal_chr['8']
-
-#puts "Breakpoints:\n\t" + kt.report_breakpoints.join("\n\t")
-puts "Fragments:\n\t" + kt.report_fragments.join("\n\t")
 
 
 

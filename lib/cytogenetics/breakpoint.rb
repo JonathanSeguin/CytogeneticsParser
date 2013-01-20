@@ -10,7 +10,7 @@ module Cytogenetics
       @type = args[2] if args.length > 2
 
       unless ((c.is_a? String and c.match(/\d+|X|Y/)) and (b.is_a? String and b.length > 0))
-        @log.error("#{c}#{b} is not a valid breakpoint")
+        #@log.error("#{c}#{b} is not a valid breakpoint")
         raise StructureError, "#{c}#{b} is not a valid breakpoint"
       end
       @chr = c; @band = b
@@ -29,7 +29,6 @@ module Cytogenetics
 
     def config_logging
       @log = Cytogenetics.logger
-      #@log.progname = self.class.name
     end
 
   end

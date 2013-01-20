@@ -33,20 +33,21 @@ module Cytogenetics
       end
       @clog
     end
-
-    #def haploid=(hp)
-    #  @sp_ploidy=hp
-    #end
-    #
-    #def haploid
-    #  unless @sp_ploidy
-    #
-    #  end
-    #end
-
   end
 
-  def self.karyotype(kary_str)
+
+  def self.bands
+    return @band_reader
+  end
+
+
+  def self.karyotype(*args)
+    raise ArgumentError, "Missing argument, karyotype string required as the first parameter." unless args[0]
+    kary_str = args[0]
+    (args[1].nil?)? (band_file = "../resources/HsBands.txt"): (band_file = args[1])
+
+    @band_reader = BandReader.new(band_file)
+
     return Karyotype.new(kary_str)
   end
 
@@ -54,11 +55,23 @@ module Cytogenetics
     return Aberration.classify_aberration(abr)
   end
 
-
-  class StructureError < StandardError
+  class KaryotypeError < StandardError
   end
 
-  class KaryotypeError < StandardError
+  class StructureError < KaryotypeError
+    def initialize(msg = nil)
+      text = "Karyotype string is incorrectly structured"
+      text = "#{text}: #{msg}" if msg
+      super(text)
+    end
+  end
+
+  class BandDefinitionError < KaryotypeError
+    def initialize(msg = nil)
+      text = "Bands undefined or incorrectly defined"
+      text = "#{text}: #{msg}" if msg
+      super(text)
+    end
   end
 
 end

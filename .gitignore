@@ -1,7 +1,6 @@
 *.log
 
-.idea/*.*
-.idea/scopes/*.*
+.idea/
 
 
 .DS_Store

@@ -38,21 +38,34 @@ module Cytogenetics
             @log.warn("Aberration #{abr_type} expects #{@aberration_obj[abr_type].expected_chromosome} chromosomes but #{match.captures.length} found")
           end
 
-          ## With a translocation but not a derivative you should get one chromosome for each translocated t(7;4) --> 7, 4 with breakpoints
-          ## With all others (so far) it should result in one chromosome so just take the first one
-          if abr_type.to_s.eql? ChromosomeAberrations::Translocation.type.to_s
-            match.captures.each do |c|
-              chr = Chromosome.new(c, true)
+          case abr_type.to_s
+            ## With a translocation but not a derivative you should get one chromosome for each translocated t(7;4) --> 7, 4 with breakpoints
+            ## With all others (so far) it should result in one chromosome so just take the first one
+            when (ChromosomeAberrations::Translocation.type.to_s or ChromosomeAberrations::DicentricChromosome.type.to_s)
+              match.captures.each do |c|
+                chr = Chromosome.new(c, true)
+                chr.aberration(@aberration_obj[abr_type].new(abr))
+                (@abnormal_chr[chr.name] ||= []) << chr
+                # Example: when a translocation is indicated without a derivative it means that there's no new chromosome, but each chromosome
+                # in the translocation is one of the normal pair.  t(9:22)(q43;q11)  Should have 1 normal 9 and 1 normal 22, then 1 abnormal of each
+                @normal_chr[c] = 1 unless (@aberration_obj[abr_type].expected_chromosome.eql? 1 or c.eql? 'Y')
+              end
+            when ChromosomeAberrations::DoubleMinuteChromosome.type.to_s
+              chr = match.captures.last
+              frags = match.captures.first.split("~")
+              (1..frags.last.to_i).each do |f|
+                (@abnormal_chr[chr] ||= []) << Chromosome.new(chr, ChromosomeType::DoubleMinute)
+              end
+            when ChromosomeAberrations::RingChromosome.type.to_s
+              chr = match.captures.first
+              (@abnormal_chr[chr] ||= []) << Chromosome.new(chr, ChromosomeType::Ring)
+            when ChromosomeAberrations::ChromosomeFragment.type.to_s
+              chr = match.captures.first
+              (@abnormal_chr[chr] ||= []) << Chromosome.new(chr, ChromosomeType::UndefinedFragment)
+            else
+              chr = Chromosome.new(match.captures[@aberration_obj[abr_type].chromosome_regex_position])
               chr.aberration(@aberration_obj[abr_type].new(abr))
               (@abnormal_chr[chr.name] ||= []) << chr
-              # Example: when a translocation is indicated without a derivative it means that there's no new chromosome, but each chromosome
-              # in the translocation is one of the normal pair.  t(9:22)(q43;q11)  Should have 1 normal 9 and 1 normal 22, then 1 abnormal of each
-              @normal_chr[c] = 1 unless (@aberration_obj[abr_type].expected_chromosome.eql? 1 or c.eql? 'Y')
-            end
-          else
-            chr = Chromosome.new(match.captures[ @aberration_obj[abr_type].chromosome_regex_position ])
-            chr.aberration(@aberration_obj[abr_type].new(abr))
-            (@abnormal_chr[chr.name] ||= []) << chr
           end
         end
       end
@@ -68,6 +81,7 @@ module Cytogenetics
       end
       bps.delete_if { |c| c.empty? }
       bps.flatten!
+      bps = bps.uniq { |bp| bp.to_s }
       return bps
     end
 
@@ -139,18 +153,23 @@ module Cytogenetics
         @ploidy = KaryotypeReader.calculate_ploidy(pl, @@haploid)
         sex_chr = KaryotypeReader.determine_sex(sc)
       else
-        raise KaryotypeError, "'#{@karyotype}' is not a valid karyotype. Ploidy and sex defnitions are absent"
+        raise KaryotypeError, "'#{@karyotype}' is not a valid karyotype. Ploidy and sex defnitions are absent."
       end
 
       ## Set up the normal chromosome array based on the ploidy value
       (Array(1..23)).each { |c| @normal_chr[c.to_s] = @ploidy.to_i }
 
-      # sometimes the sex is not indicated and there's no case information to figure it out, so start reading karyotype from this position
+      # sometimes the sex is not indicated and there's no case information to figure it out, so start
+      # reading karyotype from this position
       (sex_chr.values.inject { |sum, v| sum+v }.eql? 0) ? (karyotype_index = 1) : (karyotype_index = 2)
-
       sex_chr_count = sex_chr.values.inject { |sum, v| sum+v }
       (sex_chr_count.eql? 0) ? (karyotype_index = 1) : (karyotype_index = 2)
 
+      define_sex_chromosomes(sex_chr)
+      classify_aberrations(karyotype_index)
+    end
+
+    def define_sex_chromosomes(sex_chr)
       case
         when ((sex_chr['X'] > 0 and sex_chr['Y'] > 0) or (sex_chr['X'].eql? 0 and sex_chr['Y'] > 0))
           @sex = 'XY'
@@ -160,14 +179,12 @@ module Cytogenetics
           @sex = ""
       end
 
-
       ## I'm sure there's a cleaner way to do this but I'm stuck at the moment
       sex_chr.each_pair { |c, count| @normal_chr[c] = count }
       (1..sex_chr['Y']).each do |i|
         @normal_chr['Y'] = 1
         (@abnormal_chr['Y'] ||= []) << Chromosome.new('Y', ChromosomeAberrations::ChromosomeGain.new('Y')) if i > 1
       end
-
       (1..sex_chr['X']).each do |i|
         if @normal_chr['Y'] > 0
           @normal_chr['X'] = 1
@@ -177,12 +194,12 @@ module Cytogenetics
           (@abnormal_chr['X'] ||= []) << Chromosome.new('X', ChromosomeAberrations::ChromosomeGain.new('X')) if i > 2
         end
       end
+    end
 
-
+    def classify_aberrations(aberration_start)
       # deal with the most common karyotype string inconsistencies
       cleaned_karyotype = []
-
-      @karyotype.split(",")[karyotype_index..-1].each do |abr|
+      @karyotype.split(",")[aberration_start..-1].each do |abr|
         cleaned_karyotype |= [cleaned_karyotype, KaryotypeReader.cleanup(abr)].flatten
       end
       @karyotype = cleaned_karyotype
@@ -197,13 +214,11 @@ module Cytogenetics
       @aberrations.each_pair do |abrclass, abrlist|
         next if (abrclass.eql? ChromosomeAberrations::ChromosomeGain.type or abrclass.eql? ChromosomeAberrations::ChromosomeLoss.type)
         # aberrations other than chromosome gains/losses should be uniquely represented
-
         counts = abrlist.inject(Hash.new(0)) { |h, i| h[i] += 1; h }
         counts.each_pair { |k, v| @log.warn("#{k} was seen multiple times. Analyzed only once.") if v > 1 }
-
         @aberrations[abrclass] = abrlist.uniq
       end
-
     end
+
   end
 end

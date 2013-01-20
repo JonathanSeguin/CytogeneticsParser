@@ -15,13 +15,14 @@ module Cytogenetics
       ## 1)  t(1;3)(p31;p13)
       def get_breakpoints
         chr_i = find_chr(@abr)
-        band_i = find_bands(@abr, chr_i[:end_index])
-        unless band_i
-          @log.warn("No bands defined in #{@abr}")
-        else
+        begin
+          band_i = find_bands(@abr, chr_i[:end_index])
           chr_i[:chr].each_with_index do |c, i|
             @breakpoints << Breakpoint.new(c, band_i[:bands][i], 'trans')
           end
+          check_bands()
+        rescue BandDefinitionError => e
+          @log.warn("#{self.class.name} #{e.message}")
         end
       end
     end

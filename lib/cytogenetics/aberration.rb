@@ -69,7 +69,11 @@ module Cytogenetics
       #regex = Aberration.regex[@type.to_sym]
       # make sure it really is an inversion first
       #raise StructureError, "#{str} does not appear to be a #{self.class}" unless str.match(self.regex)
-      get_breakpoints() #(@abr)
+      begin
+        get_breakpoints()
+      rescue StructureError => e
+        @log.warn(e.message)
+      end
       @breakpoints.flatten!
     end
 
@@ -90,17 +94,28 @@ module Cytogenetics
       chr_i = find_chr(@abr)
       return if chr_i.nil?
 
-      band_i = find_bands(@abr, chr_i[:end_index])
+      begin
+        band_i = find_bands(@abr, chr_i[:end_index])
 
-      unless band_i.nil? # breakpoints aren't added if there is no band information
         chr_i[:chr].each_with_index do |c, i|
           fragments = find_fragments(band_i[:bands][i])
           fragments.each { |f| @breakpoints << Breakpoint.new(c, f, self.class.type) }
         end
-      else
+        check_bands()
+      rescue BandDefinitionError => e
+        @log.warn("#{self.class.name} #{e.message}")
         ## No band --> TODO add this as information somewhere but not as a breakpoint
         #@breakpoints << Breakpoint.new(c, "", @type)
       end
+    end
+
+    def check_bands
+      bands = Cytogenetics.bands.all
+      @breakpoints.reject! {|bp|
+        reject = bands.index(bp.to_s).nil?
+        @log.warn("Band #{bp.to_s} doesn't exist. Removing from breakpoints list.") if reject
+        reject
+      }
     end
 
     # Parsing aberration strings to pull out the chromosome and band definitions
@@ -111,7 +126,7 @@ module Cytogenetics
       chrs = str[chr_s+1..chr_e-1].split(/;|:/)
       chrs.each do |chr|
         unless chr.match(/^\d+|X|Y$/)
-          @log.warn("No chromosome defined from #{str}, skipped.")
+          raise StructureError, "No chromosome defined from #{str}, skipped."
           return
         end
       end
@@ -120,11 +135,7 @@ module Cytogenetics
 
     def find_bands(str, index)
       band_info = nil
-      #raise StructureError, "No bands defined in #{str}" if str.length.eql?(index+1)
-      if str.length.eql?(index+1)
-        @log.warn("No bands defined in #{str}, skipped.")
-        return
-      end
+      return if str.length.eql?(index+1)
 
       ei = str.index(/\(/, index)
       if str.match(/(q|p)(\d+|\?)/) and str[ei-1..ei].eql?(")(") # has bands and is not a translocation
@@ -138,11 +149,8 @@ module Cytogenetics
           return band_info
         else
           bands.map! { |b| b.sub(/-[q|p]\d+$/, "") } # sometimes bands are given a range, for our purposes we'll take the first one (CyDas appears to do this as well)
-          bands.each do |b|
-            unless b.match(/^[p|q]\d+(\.\d)?$/)
-              @log.warn("Bands incorrectly defined in #{str}")
-              return band_info
-            end
+          bands.each do |b| ## checking the bands
+            raise BandDefinitionError, str unless b.match(/^[p|q](\d{1,2})(\.\d{1,2})?$/)
           end
           band_info = {:start_index => band_s, :end_index => band_e, :bands => bands}
         end
@@ -156,9 +164,9 @@ module Cytogenetics
     end
 
     :private
+
     def config_logging
       @log = Cytogenetics.logger
-      #@log.progname = self.class.name
     end
 
   end
