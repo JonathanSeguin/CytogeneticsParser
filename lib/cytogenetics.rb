@@ -44,10 +44,13 @@ module Cytogenetics
   def self.karyotype(*args)
     raise ArgumentError, "Missing argument, karyotype string required as the first parameter." unless args[0]
     kary_str = args[0]
-    (args[1].nil?)? (band_file = "../resources/HsBands.txt"): (band_file = args[1])
+
+    cdir = File.dirname(__FILE__).split("/")
+    cdir[-1] = "resources"
+    cdir = cdir.join("/")
+    (args[1].nil?)? (band_file = "#{cdir}/HsBands.txt"): (band_file = args[1])
 
     @band_reader = BandReader.new(band_file)
-
     return Karyotype.new(kary_str)
   end
 

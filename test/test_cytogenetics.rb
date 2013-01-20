@@ -6,7 +6,6 @@ class TestCytogenetics < Test::Unit::TestCase
 
   @@karyotype = "43-45,XY,t(12;14)(q14;q23q24),add(2;3)(q13),-3,-5,dic(13;13)(q14;q32),der(6)t(2;6)(q12;p12)t(1;6)(p22;q21),der(5)t(5;17)(q13;q21),-7,i(8)(q10),-11,-17,ider(19)(q10)add(19)(q13)"
 
-
   def test_no_karyotype
     begin
       Cytogenetics.karyotype("foo")
