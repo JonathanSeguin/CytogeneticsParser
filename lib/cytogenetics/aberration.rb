@@ -96,7 +96,6 @@ module Cytogenetics
 
       begin
         band_i = find_bands(@abr, chr_i[:end_index])
-
         chr_i[:chr].each_with_index do |c, i|
           fragments = find_fragments(band_i[:bands][i])
           fragments.each { |f| @breakpoints << Breakpoint.new(c, f, self.class.type) }
@@ -111,7 +110,13 @@ module Cytogenetics
 
     def check_bands
       bands = Cytogenetics.bands.all
-      @breakpoints.reject! {|bp|
+      @breakpoints.each do |bp|
+        if bands.index(bp.to_s).nil? and bp.to_s.match(/^(\d+|X|Y)([p|q]\d+)\.\d+$/)
+          @breakpoints << Breakpoint.new($1, $2) if bands.index("#{$1}#{$2}")
+          @log.warn("Band #{bp.to_s} doesn't exist. Removing from breakpoints list.")
+        end
+      end
+      @breakpoints.reject! { |bp|
         reject = bands.index(bp.to_s).nil?
         @log.warn("Band #{bp.to_s} doesn't exist. Removing from breakpoints list.") if reject
         reject
@@ -134,28 +139,28 @@ module Cytogenetics
     end
 
     def find_bands(str, index)
-      band_info = nil
-      return if str.length.eql?(index+1)
+      unless str.length.eql?(index+1) # There are no bands
+        ei = str.index(/\(/, index)
+        if str.match(/(q|p)(\d+|\?)/) and str[ei-1..ei].eql?(")(") # has bands and is not a translocation
+          band_s = str.index(/\(/, index)
+          band_e = str.index(/\)/, band_s)
+          band_e = str.length-1 if band_e.nil?
+          bands = str[band_s+1..band_e-1].split(/;|:/)
 
-      ei = str.index(/\(/, index)
-      if str.match(/(q|p)(\d+|\?)/) and str[ei-1..ei].eql?(")(") # has bands and is not a translocation
-        band_s = str.index(/\(/, index)
-        band_e = str.index(/\)/, band_s)
-        band_e = str.length-1 if band_e.nil?
-        bands = str[band_s+1..band_e-1].split(/;|:/)
-
-        if str[band_s+1..band_e-1].match(/::/)
-          @log.warn("Aberration defined using unhandled syntax, not currently parsed skipping: #{@abr}")
-          return band_info
-        else
-          bands.map! { |b| b.sub(/-[q|p]\d+$/, "") } # sometimes bands are given a range, for our purposes we'll take the first one (CyDas appears to do this as well)
-          bands.each do |b| ## checking the bands
-            raise BandDefinitionError, str unless b.match(/^[p|q](\d{1,2})(\.\d{1,2})?$/)
+          if str[band_s+1..band_e-1].match(/::/)
+            raise BandDefinitionError, "Aberration defined using unhandled syntax, skipping: #{@abr}"
+            #@log.warn("Aberration defined using unhandled syntax, not currently parsed skipping: #{@abr}")
+            #return band_info
+          else
+            bands.map! { |b| b.sub(/-[q|p]\d+$/, "") } # sometimes bands are given a range, for our purposes we'll take the first one (CyDas appears to do this as well)
+            bands.each do |b| ## checking the bands
+              raise BandDefinitionError, str unless b.match(/^[p|q](\d{1,2})(\.\d{1,2})?$/)
+            end
+            return {:start_index => band_s, :end_index => band_e, :bands => bands}
           end
-          band_info = {:start_index => band_s, :end_index => band_e, :bands => bands}
         end
       end
-      return band_info
+      raise BandDefinitionError, str
     end
 
     # sometimes bands are defined for a single chr as p13q22

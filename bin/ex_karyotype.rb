@@ -4,7 +4,6 @@ require_relative '../lib/cytogenetics'
 require 'logger'
 
 log = Logger.new(STDOUT)
-
 log.level = Logger::INFO
 Cytogenetics.logger = log
 
@@ -21,12 +20,12 @@ k = "43-45,XY,add(2;3)(q13),-3,-5,dic(13;13)(q14;q32),dic(1;19)(q12;q13),der(6)t
 
 k = "46, XX, dic(12;14)(q14;q23),1~9dmin(8),t(12;14)(q14;q23)"
 
-#k = kts[-1]
-#k = "46, XX, t(12;14)(q14;q23q24),add(13)(q87)"
+k = " 43-76<+3n>,XX,-Y,+der(1;14)(q10;q10)[2],der(3)t(3;5)(p12;q11.2),-6,+7,+7,i(8)(q10),-9,del(11)(q12),+der(11)t(9:11)(q13;q13),+12,+del(12)(q22),-13,der(14)t(11;14)(q11.2;p11.2),der(14)t(5;14)(?;p11.2),+15,+17,+del(19)(p13.2),+20[cp9]"
 
+k= "31-75,XY,+X,+Y,+1,-2,der(2)t(2;3)(q31;q12),-3,+5,+6,+7,+8,-8,i(8)(q10),-9,der(10)t(9;10)(q31;q33),idic(9)(q13); +10,+11,+12,-13,-14,+15,+16,-17,-18,+19,-19,der(19)t(13;19)(q31;p13.1),+20,+21,der(22)t(4;1;22;1)(p14;p34;p11.2;p24)del(1)p21-31,-22,cp[10]"
+#k = kts[-1]
 
 kt = Cytogenetics.karyotype(k)
-
 puts "Breakpoints:\n\t" + kt.report_breakpoints.join("\n\t")
 puts "Fragments:\n\t" + kt.report_fragments.join("\n\t")
 puts kt.abnormal_chr

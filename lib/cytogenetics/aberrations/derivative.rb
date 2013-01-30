@@ -35,8 +35,10 @@ module Cytogenetics
           # translocations should also only every have 2 breakpoints...
           if abrclass.to_s.eql? ChromosomeAberrations::Translocation.type
             trans = ChromosomeAberrations::Translocation.new(abn)
-            trans_bps << trans.breakpoints
-            @breakpoints << trans.breakpoints
+            unless trans.breakpoints.length < 2 # translocation should have at least 2 breakpoints
+              trans_bps << trans.breakpoints
+              @breakpoints << trans.breakpoints
+            end
           else
             ab_obj = ab_objs[abrclass].new(abn)
             if ab_obj.breakpoints.length > 0
@@ -64,10 +66,13 @@ module Cytogenetics
         end
         sorted << Breakpoint.new(sorted[-1].chr, "#{sorted[-1].arm}ter")
         sorted.each_slice(2).to_a.each do |pair|
-          @fragments << Fragment.new(pair[0], pair[1])
+          begin
+            @fragments << Fragment.new(pair[0], pair[1])
+          rescue ArgumentError => ae
+            @log.warn("#{ae.message} Skipping fragment: #{pair.inspect}.")
+          end
         end
       end
-
     end
   end
 end

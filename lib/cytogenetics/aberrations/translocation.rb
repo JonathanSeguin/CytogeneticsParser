@@ -15,12 +15,17 @@ module Cytogenetics
       ## 1)  t(1;3)(p31;p13)
       def get_breakpoints
         chr_i = find_chr(@abr)
+        return if chr_i.nil?
         begin
           band_i = find_bands(@abr, chr_i[:end_index])
           chr_i[:chr].each_with_index do |c, i|
             @breakpoints << Breakpoint.new(c, band_i[:bands][i], 'trans')
           end
           check_bands()
+          if @breakpoints.length < 2
+            @breakpoints = []
+            @log.warn("Translocation has too few correct breakpoints: #{@abr}")
+          end
         rescue BandDefinitionError => e
           @log.warn("#{self.class.name} #{e.message}")
         end
