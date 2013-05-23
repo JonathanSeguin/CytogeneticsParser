@@ -1,5 +1,5 @@
 require 'yaml'
-require_relative 'chromosome'
+require_relative '../chromosome'
 
 module Cytogenetics
 

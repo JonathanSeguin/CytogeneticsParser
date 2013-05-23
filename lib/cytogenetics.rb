@@ -3,15 +3,15 @@ require_relative 'cytogenetics/breakpoint'
 require_relative 'cytogenetics/chromosome'
 require_relative 'cytogenetics/fragment'
 require_relative 'cytogenetics/karyotype'
-require_relative 'cytogenetics/ring'
 
 require_relative 'cytogenetics/aberrations/translocation'
-require_relative 'cytogenetics/aberrations/dicentric_chromosome'
 require_relative 'cytogenetics/aberrations/derivative'
-require_relative 'cytogenetics/aberrations/double_minute_chromosome'
-
 require_relative 'cytogenetics/aberrations/basic_aberrations'
 require_relative 'cytogenetics/aberrations/ploidy_aberrations'
+
+require_relative 'cytogenetics/chromosomes/dicentric_chromosome'
+require_relative 'cytogenetics/chromosomes/double_minute_chromosome'
+require_relative 'cytogenetics/chromosomes/ring'
 
 require_relative 'cytogenetics/utils/karyotype_reader'
 require_relative 'cytogenetics/utils/band_reader'

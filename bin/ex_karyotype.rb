@@ -27,10 +27,9 @@ k= "31-75,XY,+X,+Y,+1,-2,der(2)t(2;3)(q31;q12),-3,+5,+6,+7,+8,-8,i(8)(q10),-9,de
 
 kt = Cytogenetics.karyotype(k)
 puts "Breakpoints:\n\t" + kt.report_breakpoints.join("\n\t")
-puts "Fragments:\n\t" + kt.report_fragments.join("\n\t")
-puts kt.abnormal_chr
-puts kt.normal_chr
-
-
-
+puts "Aberrations:\n\t" + YAML::dump(kt.aberrations)
+#puts "Fragments:\n\t" + kt.report_fragments.join("\n\t")
+#puts kt.abnormal_chr
+#puts kt.normal_chr
+puts kt.associate_bp_to_abr
 

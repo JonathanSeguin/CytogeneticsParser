@@ -1,5 +1,5 @@
 require_relative '../aberration'
-require_relative '../ring'
+require_relative 'ring'
 
 module Cytogenetics
 

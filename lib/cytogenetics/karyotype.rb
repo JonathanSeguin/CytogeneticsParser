@@ -10,7 +10,7 @@ module Cytogenetics
     attr_reader :aberrations, :karyotype, :ploidy, :sex, :abnormal_chr, :normal_chr, :original_karyotype
 
     class<<self
-      attr_accessor :aberration_objs, :unclear_aberrations, :log
+      attr_accessor :aberration_objs, :unclear_aberrations, :log, :abr_to_bp
     end
 
     def initialize(karyotype_str)
@@ -21,6 +21,7 @@ module Cytogenetics
       @karyotype = karyotype_str.gsub(/\s/, "")
       @original_karyotype = @karyotype # just to keep it around before it gets cleaned up
       @normal_chr = {}; @abnormal_chr = {}; @aberrations = {}; @unclear_aberrations = [];
+      @abr_to_bp = {}
       setup_abberation_objs()
       prep_karyotype()
       handle_ploidy_diff()
@@ -38,6 +39,7 @@ module Cytogenetics
             @log.warn("Aberration #{abr_type} expects #{@aberration_obj[abr_type].expected_chromosome} chromosomes but #{match.captures.length} found")
           end
 
+          chr = nil
           case abr_type.to_s
             ## With a translocation but not a derivative you should get one chromosome for each translocated t(7;4) --> 7, 4 with breakpoints
             ## With all others (so far) it should result in one chromosome so just take the first one
@@ -67,6 +69,8 @@ module Cytogenetics
               chr.aberration(@aberration_obj[abr_type].new(abr))
               (@abnormal_chr[chr.name] ||= []) << chr
           end
+          #(@abr_to_bp[abr] ||= []) << chr.a
+
         end
       end
     end
@@ -119,6 +123,20 @@ module Cytogenetics
           summary = "#{summary}\n#{c.breakpoints}\n"
         end
       end
+    end
+
+    def associate_bp_to_abr
+      abr_to_bp = {}
+      @abnormal_chr.each_pair do |key, chrs|
+        chrs.each do |chr|
+          chr.aberrations.each do |abr|
+            (abr_to_bp[abr.abr] ||= [] ) << abr.breakpoints.map{|bp| bp.to_s }
+            abr_to_bp[abr.abr].flatten!
+          end
+        end
+      end
+      abr_to_bp.delete_if{ |k,v| v.empty? }
+      return abr_to_bp
     end
 
     # -------------------- # PRIVATE # -------------------- #
