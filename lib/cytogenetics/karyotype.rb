@@ -136,6 +136,7 @@ module Cytogenetics
         end
       end
       abr_to_bp.delete_if{ |k,v| v.empty? }
+      abr_to_bp.each_value{|v| v.uniq! }
       return abr_to_bp
     end
 
