@@ -11,7 +11,7 @@ module Cytogenetics
       @kt = 'der'
       @rx = /^der\((\d+|X|Y)\)/
 
-      def get_breakpoints
+      def get_breakpoints(test_bands)
         @aberrations = []
 
         ab_objs = Aberration.aberration_objs

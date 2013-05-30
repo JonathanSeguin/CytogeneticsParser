@@ -60,7 +60,7 @@ module Cytogenetics
       return @ex ||= 1
     end
 
-    def initialize(str)
+    def initialize(str, test_bands = true)
       config_logging()
 
       @abr = str
@@ -70,7 +70,7 @@ module Cytogenetics
       # make sure it really is an inversion first
       #raise StructureError, "#{str} does not appear to be a #{self.class}" unless str.match(self.regex)
       begin
-        get_breakpoints()
+        get_breakpoints(test_bands)
       rescue StructureError => e
         @log.warn(e.message)
       end
@@ -90,7 +90,7 @@ module Cytogenetics
 
     :private
 
-    def get_breakpoints
+    def get_breakpoints(test_bands)
       chr_i = find_chr(@abr)
       return if chr_i.nil?
 
@@ -100,7 +100,7 @@ module Cytogenetics
           fragments = find_fragments(band_i[:bands][i])
           fragments.each { |f| @breakpoints << Breakpoint.new(c, f, self.class.type) }
         end
-        check_bands()
+        check_bands() if test_bands
       rescue BandDefinitionError => e
         @log.warn("#{self.class.name} #{e.message}")
         ## No band --> TODO add this as information somewhere but not as a breakpoint

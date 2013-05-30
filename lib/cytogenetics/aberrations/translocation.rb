@@ -13,7 +13,7 @@ module Cytogenetics
 
       ## TWo ways of defining translocations:
       ## 1)  t(1;3)(p31;p13)
-      def get_breakpoints
+      def get_breakpoints(test_bands)
         chr_i = find_chr(@abr)
         return if chr_i.nil?
         begin
@@ -21,7 +21,7 @@ module Cytogenetics
           chr_i[:chr].each_with_index do |c, i|
             @breakpoints << Breakpoint.new(c, band_i[:bands][i], 'trans')
           end
-          check_bands()
+          check_bands() if test_bands
           if @breakpoints.length < 2
             @breakpoints = []
             @log.warn("Translocation has too few correct breakpoints: #{@abr}")
