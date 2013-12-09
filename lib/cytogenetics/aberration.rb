@@ -103,6 +103,7 @@ module Cytogenetics
         check_bands() if test_bands
       rescue BandDefinitionError => e
         @log.warn("#{self.class.name} #{e.message}")
+        raise e
         ## No band --> TODO add this as information somewhere but not as a breakpoint
         #@breakpoints << Breakpoint.new(c, "", @type)
       end
