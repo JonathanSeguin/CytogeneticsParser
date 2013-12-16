@@ -2,7 +2,7 @@ $LOAD_PATH.push File.expand_path("../lib", __FILE__)
 require 'cytogenetics/version'
 
 Gem::Specification.new do |s|
-  s.name = "cytogenetics-MitelmanSorter"
+  s.name = "cytogenetics"
   s.author = "Original code by Sarah Killcoyne"
   s.email = "sarah.killcoyne@uni.lu"
   s.license = "http://www.apache.org/licenses/LICENSE-2.0.html"
